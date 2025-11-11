@@ -105,6 +105,18 @@ It releases snapshots to `https://oss.sonatype.org/content/repositories/snapshot
 
 Currently only the executable jar in org.alloytools.alloy.dist/target/org.alloytools.alloy.dist.jar is build. See the conveyor directory for the release executables.
 
+## WASM Demo
+
+A proof-of-concept web application that demonstrates Alloy running in the browser is available in the [alloy-wasm-demo](alloy-wasm-demo) directory. 
+
+To run it locally:
+```bash
+cd alloy-wasm-demo
+./serve.sh
+```
+
+Then open http://localhost:8000 in your browser. See the [WASM demo README](alloy-wasm-demo/README.md) for more details.
+
 ## CONTRIBUTIONS
 
 Please read the [CONTRIBUTING](CONTRIBUTING.md) to understand how you can contribute.
