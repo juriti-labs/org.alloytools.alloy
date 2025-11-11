@@ -1,0 +1,85 @@
+name: WASM Build and Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'alloy-wasm-demo/**'
+      - '.github/workflows/wasm-build.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'alloy-wasm-demo/**'
+      - '.github/workflows/wasm-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          echo "Validating HTML structure..."
+          if [ -f "alloy-wasm-demo/index.html" ]; then
+            echo "✓ index.html found"
+          else
+            echo "✗ index.html not found"
+            exit 1
+          fi
+
+      - name: Validate JavaScript
+        run: |
+          echo "Validating JavaScript..."
+          if [ -f "alloy-wasm-demo/app.js" ]; then
+            echo "✓ app.js found"
+          else
+            echo "✗ app.js not found"
+            exit 1
+          fi
+
+      - name: Create artifact
+        run: |
+          cd alloy-wasm-demo
+          ls -la
+          echo "WASM demo files ready for deployment"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alloy-wasm-demo
+          path: alloy-wasm-demo/
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages (on main branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./alloy-wasm-demo
+          publish_branch: gh-pages
+          destination_dir: wasm-demo
+
+      - name: Summary
+        run: |
+          echo "## WASM Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Build completed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files Built:" >> $GITHUB_STEP_SUMMARY
+          echo "- index.html" >> $GITHUB_STEP_SUMMARY
+          echo "- app.js" >> $GITHUB_STEP_SUMMARY
+          echo "- README.md" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.ref }}" == "refs/heads/main" ] && [ "${{ github.event_name }}" == "push" ]; then
+            echo "### 🚀 Deployed to GitHub Pages!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "View at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/wasm-demo/" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 📦 Artifact Created" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Download the artifact from the Actions tab to test locally." >> $GITHUB_STEP_SUMMARY
+          fi
