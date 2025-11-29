@@ -347,6 +347,10 @@ public class TrainingDataGenerator {
         return "\"" + escapeJson(value) + "\"";
     }
     
+    /**
+     * Escape special characters for JSON string values.
+     * Properly handles all JSON control characters.
+     */
     private String escapeJson(String value) {
         if (value == null) {
             return "";
@@ -356,6 +360,8 @@ public class TrainingDataGenerator {
             .replace("\"", "\\\"")
             .replace("\n", "\\n")
             .replace("\r", "\\r")
-            .replace("\t", "\\t");
+            .replace("\t", "\\t")
+            .replace("\b", "\\b")
+            .replace("\f", "\\f");
     }
 }

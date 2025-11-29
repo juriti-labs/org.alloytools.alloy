@@ -501,4 +501,71 @@ public class OutputUtilsTest {
         String result = OutputUtils.sanitizeRdfId("\"'<>");
         assertEquals("unknown", result);
     }
+
+    // ===================== escapeJson tests =====================
+
+    @Test
+    public void testEscapeJson_NullInput() {
+        assertEquals("", OutputUtils.escapeJson(null));
+    }
+
+    @Test
+    public void testEscapeJson_EmptyString() {
+        assertEquals("", OutputUtils.escapeJson(""));
+    }
+
+    @Test
+    public void testEscapeJson_NormalString() {
+        assertEquals("hello", OutputUtils.escapeJson("hello"));
+    }
+
+    @Test
+    public void testEscapeJson_Backslash() {
+        assertEquals("a\\\\b", OutputUtils.escapeJson("a\\b"));
+    }
+
+    @Test
+    public void testEscapeJson_DoubleQuotes() {
+        assertEquals("say \\\"hello\\\"", OutputUtils.escapeJson("say \"hello\""));
+    }
+
+    @Test
+    public void testEscapeJson_Newline() {
+        assertEquals("line1\\nline2", OutputUtils.escapeJson("line1\nline2"));
+    }
+
+    @Test
+    public void testEscapeJson_CarriageReturn() {
+        assertEquals("line1\\rline2", OutputUtils.escapeJson("line1\rline2"));
+    }
+
+    @Test
+    public void testEscapeJson_Tab() {
+        assertEquals("a\\tb", OutputUtils.escapeJson("a\tb"));
+    }
+
+    @Test
+    public void testEscapeJson_Backspace() {
+        assertEquals("a\\bb", OutputUtils.escapeJson("a\bb"));
+    }
+
+    @Test
+    public void testEscapeJson_FormFeed() {
+        assertEquals("a\\fb", OutputUtils.escapeJson("a\fb"));
+    }
+
+    @Test
+    public void testEscapeJson_AllEscapesInOrder() {
+        assertEquals("\\\\\\\"\\n\\r\\t\\b\\f", OutputUtils.escapeJson("\\\"\n\r\t\b\f"));
+    }
+
+    @Test
+    public void testEscapeJson_NotNull() {
+        assertNotNull(OutputUtils.escapeJson("test"));
+    }
+
+    @Test
+    public void testEscapeJson_UnicodeCharacters() {
+        assertEquals("héllo", OutputUtils.escapeJson("héllo"));
+    }
 }

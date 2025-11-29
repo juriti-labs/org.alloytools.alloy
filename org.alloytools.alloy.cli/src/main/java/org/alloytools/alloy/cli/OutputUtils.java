@@ -57,4 +57,19 @@ public class OutputUtils {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
     }
+
+    /**
+     * Escape special characters for JSON string values.
+     * Properly handles all JSON control characters.
+     */
+    public static String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f");
+    }
 }

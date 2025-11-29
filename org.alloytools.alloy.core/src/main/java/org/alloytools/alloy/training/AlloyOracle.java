@@ -52,7 +52,10 @@ public class AlloyOracle {
     public AlloyOracle(A4Options options, long timeoutMs) {
         this.options = options;
         this.timeoutMs = timeoutMs;
-        this.executor = Executors.newCachedThreadPool();
+        // Use a bounded thread pool to prevent resource exhaustion under high load
+        // Max threads = number of processors * 2, with a queue for pending tasks
+        int maxThreads = Runtime.getRuntime().availableProcessors() * 2;
+        this.executor = Executors.newFixedThreadPool(maxThreads);
     }
     
     /**
