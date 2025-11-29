@@ -1,0 +1,67 @@
+// Build configuration for Alloy WASM module
+// This module provides JavaScript/WASM build capabilities for browser usage
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// TeaVM version for Java to JavaScript/WASM compilation
+def teavmVersion = '0.9.2'
+
+dependencies {
+    // TeaVM for JavaScript compilation
+    implementation "org.teavm:teavm-classlib:${teavmVersion}"
+    implementation "org.teavm:teavm-jso:${teavmVersion}"
+    implementation "org.teavm:teavm-jso-apis:${teavmVersion}"
+    
+    // Project dependencies  
+    implementation project(':org.alloytools.alloy.core')
+    implementation project(':org.alloytools.api')
+    implementation project(':org.alloytools.pardinus.core')
+}
+
+// Custom task to generate JavaScript using TeaVM
+task wasmBuild(type: JavaExec) {
+    group = 'build'
+    description = 'Build JavaScript/WASM version of Alloy for browser usage'
+    
+    dependsOn classes
+    
+    mainClass = 'org.teavm.tooling.TeaVMTool'
+    classpath = configurations.compileClasspath + sourceSets.main.output
+    
+    args = [
+        '--targetdir', "${buildDir}/wasm",
+        '--targettype', 'JAVASCRIPT',
+        '--mainclass', 'org.alloytools.alloy.wasm.AlloyWasm',
+        '--optimization', 'FULL',
+        '--minify'
+    ]
+    
+    doFirst {
+        mkdir "${buildDir}/wasm"
+    }
+}
+
+// Task to create a distribution package
+task wasmDist(type: Copy) {
+    group = 'build'
+    description = 'Create WASM distribution package'
+    
+    dependsOn wasmBuild
+    
+    from("${buildDir}/wasm") {
+        include '*.js'
+        include '*.wasm'
+    }
+    from('src/main/web') {
+        include '*.html'
+        include '*.css'
+    }
+    
+    into "${buildDir}/dist/wasm"
+}

@@ -1,0 +1,18 @@
+
+-buildpath: \
+	org.alloytools.alloy.core,\
+	org.alloytools.api,\
+	org.alloytools.pardinus.core,\
+	slf4j.api
+
+-testpath: \
+	biz.aQute.wrapper.junit,\
+	biz.aQute.wrapper.hamcrest,\
+	assertj-core
+
+Export-Package: \
+	org.alloytools.alloy.wasm
+
+-includepackage org.alloytools.alloy.wasm
+
+# This module provides a simple API for WASM/JavaScript builds
