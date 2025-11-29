@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -222,7 +223,6 @@ class AlloyOracle:
         parse_only: bool
     ) -> OracleResponse:
         """Internal method to execute the Alloy oracle."""
-        import time
         start_time = time.time()
         response = OracleResponse()
         

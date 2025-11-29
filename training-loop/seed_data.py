@@ -7,6 +7,8 @@ This module provides utilities for:
 - Creating augmented training data from existing models
 """
 
+import argparse
+import json
 import os
 import re
 from dataclasses import dataclass, field
@@ -262,7 +264,6 @@ def create_seed_dataset(
     
     if output_file:
         # Save as JSONL
-        import json
         with open(output_file, 'w', encoding='utf-8') as f:
             for seed in seeds:
                 line = json.dumps({
@@ -466,7 +467,7 @@ fact SocialRules {
     no p: Person | p in p.friends
     
     // Family is transitive
-    family = family.family
+    family.family in family
 }
 
 run {} for 4 Person
@@ -620,8 +621,6 @@ def get_builtin_seeds() -> List[SeedExample]:
 
 def main():
     """Example usage."""
-    import argparse
-    
     parser = argparse.ArgumentParser(description="Alloy Seed Data Utilities")
     parser.add_argument("--models-dir", help="Directory containing .als files")
     parser.add_argument("--output", help="Output file path")

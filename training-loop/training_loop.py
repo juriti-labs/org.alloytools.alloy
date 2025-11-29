@@ -8,6 +8,7 @@ This module implements the full training loop that:
 4. Optionally fine-tunes the model on successful examples
 """
 
+import argparse
 import json
 import logging
 import os
@@ -597,8 +598,6 @@ run hasTail for 5 Node
 
 def main():
     """Example usage of the training loop."""
-    import argparse
-    
     parser = argparse.ArgumentParser(description="Alloy Training Loop")
     parser.add_argument("--output", default="./training_output", help="Output directory")
     parser.add_argument("--generations", type=int, default=1, help="Number of generations")
