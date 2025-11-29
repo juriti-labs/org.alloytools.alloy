@@ -28,6 +28,10 @@ import org.alloytools.alloy.dto.SigDefDTO;
 import org.alloytools.alloy.dto.SolutionDTO;
 import org.alloytools.alloy.dto.TuplesDTO;
 import org.alloytools.alloy.infrastructure.api.AlloyMain;
+import org.alloytools.alloy.training.AlloyOracle;
+import org.alloytools.alloy.training.InstanceStats;
+import org.alloytools.alloy.training.OracleError;
+import org.alloytools.alloy.training.OracleResponse;
 import org.alloytools.util.table.Table;
 
 import aQute.bnd.exceptions.Exceptions;
@@ -1081,6 +1085,137 @@ public class CLI extends Env {
 			return new PrintWriter(stdout);
 
 		return new PrintWriter(IO.writer(file));
+	}
+
+	// ---- Oracle Command for LLM Training ----
+
+	@Arguments(arg = "module_text")
+	@Description("Run Alloy module through the oracle and output structured JSON result. " +
+			"This is designed for LLM training pipelines and automated tooling.")
+	interface OracleOptions extends Options {
+		@Description("The command to run (name or index). If not specified, runs the first command.")
+		String command();
+
+		@Description("Timeout in milliseconds. Default is 30000 (30 seconds).")
+		long timeout(long deflt);
+
+		@Description("Parse only, don't execute commands. Useful for syntax/type checking.")
+		boolean parseOnly();
+
+		@Description("Read module text from stdin instead of argument.")
+		boolean stdin();
+	}
+
+	/**
+	 * Run an Alloy module through the oracle for LLM training.
+	 * Returns structured JSON output suitable for training data generation.
+	 */
+	@Description("Run Alloy module through the oracle and output structured JSON result for LLM training")
+	public void _oracle(OracleOptions options) throws Exception {
+		String moduleText;
+		
+		if (options.stdin()) {
+			// Read from stdin
+			StringBuilder sb = new StringBuilder();
+			java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(stdin));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			moduleText = sb.toString();
+		} else {
+			List<String> args = options._arguments();
+			if (args.isEmpty()) {
+				error("Module text or --stdin required");
+				return;
+			}
+			// Check if it's a file path
+			String arg = args.get(0);
+			File file = IO.getFile(arg);
+			if (file.exists() && file.isFile()) {
+				moduleText = IO.collect(file);
+			} else {
+				// Treat as inline module text
+				moduleText = arg;
+			}
+		}
+		
+		long timeout = options.timeout(30000);
+		A4Options opt = this.options.dup();
+		AlloyOracle oracle = new AlloyOracle(opt, timeout);
+		
+		try {
+			OracleResponse response;
+			if (options.parseOnly()) {
+				response = oracle.parseOnly(moduleText);
+			} else {
+				response = oracle.run(moduleText, options.command());
+			}
+			
+			// Output as JSON
+			writeOracleResponseJson(response);
+			
+		} finally {
+			oracle.shutdown();
+		}
+	}
+	
+	private void writeOracleResponseJson(OracleResponse response) {
+		stdout.println("{");
+		stdout.printf("  \"status\": \"%s\",%n", 
+			response.status != null ? response.status.getId() : "success");
+		stdout.printf("  \"durationMs\": %d,%n", response.durationMs);
+		stdout.printf("  \"isCheck\": %s,%n", response.isCheck);
+		if (response.commandLabel != null) {
+			stdout.printf("  \"commandLabel\": \"%s\",%n", OutputUtils.escapeJson(response.commandLabel));
+		}
+		if (response.summary != null) {
+			stdout.printf("  \"summary\": \"%s\",%n", OutputUtils.escapeJson(response.summary));
+		}
+		
+		// Errors
+		stdout.println("  \"errors\": [");
+		for (int i = 0; i < response.errors.size(); i++) {
+			OracleError err = response.errors.get(i);
+			stdout.print("    {");
+			stdout.printf("\"kind\": \"%s\", ", err.kind);
+			stdout.printf("\"message\": \"%s\"", OutputUtils.escapeJson(err.message));
+			if (err.lineStart > 0) {
+				stdout.printf(", \"lineStart\": %d, \"columnStart\": %d", err.lineStart, err.columnStart);
+				stdout.printf(", \"lineEnd\": %d, \"columnEnd\": %d", err.lineEnd, err.columnEnd);
+			}
+			if (err.file != null && !err.file.isEmpty()) {
+				stdout.printf(", \"file\": \"%s\"", OutputUtils.escapeJson(err.file));
+			}
+			stdout.print("}");
+			if (i < response.errors.size() - 1) {
+				stdout.println(",");
+			} else {
+				stdout.println();
+			}
+		}
+		stdout.println("  ],");
+		
+		// Instance stats
+		if (response.instanceStats != null) {
+			InstanceStats stats = response.instanceStats;
+			stdout.println("  \"instanceStats\": {");
+			stdout.printf("    \"atomCount\": %d,%n", stats.atomCount);
+			stdout.printf("    \"signatureCount\": %d,%n", stats.signatureCount);
+			stdout.printf("    \"relationCount\": %d,%n", stats.relationCount);
+			stdout.printf("    \"tupleCount\": %d,%n", stats.tupleCount);
+			stdout.printf("    \"skolemCount\": %d,%n", stats.skolemCount);
+			stdout.printf("    \"traceLength\": %d,%n", stats.traceLength);
+			stdout.printf("    \"loopState\": %d%n", stats.loopState);
+			stdout.println("  },");
+		} else {
+			stdout.println("  \"instanceStats\": null,");
+		}
+		
+		// Solution (simplified - just indicate if present)
+		stdout.printf("  \"hasSolution\": %s%n", response.solution != null);
+		
+		stdout.println("}");
 	}
 
 	@Override
