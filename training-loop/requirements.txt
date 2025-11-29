@@ -1,0 +1,16 @@
+# Python Training Loop for Alloy
+# Dependencies for compiler-in-the-loop training
+
+# Core dependencies
+openai>=1.0.0          # For OpenAI fine-tuning API
+httpx>=0.25.0          # HTTP client for API calls
+pydantic>=2.0.0        # Data validation and settings
+
+# Data processing
+jsonlines>=3.1.0       # JSONL file handling
+
+# Optional: For local model fine-tuning (uncomment if needed)
+# transformers>=4.35.0
+# torch>=2.1.0
+# datasets>=2.14.0
+# peft>=0.6.0           # For LoRA fine-tuning

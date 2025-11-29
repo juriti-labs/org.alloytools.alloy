@@ -21,3 +21,15 @@ enroute.zip
 .idea
 *.iml
 languageServers-log/AlloyLanguageServer.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+training_output/
