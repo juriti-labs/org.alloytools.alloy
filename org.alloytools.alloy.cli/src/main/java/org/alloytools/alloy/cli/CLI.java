@@ -948,8 +948,10 @@ public class CLI extends Env {
 	 * Sanitize identifier for DOT format
 	 */
 	private String sanitizeId(String s) {
-		if (s == null) return "null";
-		return s.replace("$", "_").replace("/", "_").replace("\"", "\\\"");
+		if (s == null || s.isEmpty()) return "unknown";
+		String result = s.replace("$", "_").replace("/", "_").replace("\"", "\\\"").trim();
+		if (result.isEmpty()) return "unknown";
+		return result;
 	}
 
 	/**
@@ -1094,15 +1096,18 @@ public class CLI extends Env {
 	 * Sanitize identifier for RDF URI
 	 */
 	private String sanitizeRdfId(String s) {
-		if (s == null) return "null";
-		return s.replace("$", "_")
+		if (s == null || s.isEmpty()) return "unknown";
+		String result = s.replace("$", "_")
 				.replace("/", "_")
 				.replace(" ", "_")
 				.replace("\"", "")
 				.replace("'", "")
 				.replace("<", "")
 				.replace(">", "")
-				.replace(":", "_");
+				.replace(":", "_")
+				.trim();
+		if (result.isEmpty()) return "unknown";
+		return result;
 	}
 
 	/**
