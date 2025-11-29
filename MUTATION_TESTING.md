@@ -31,6 +31,25 @@ Mutation testing is a technique to evaluate the quality of test suites by introd
 ./gradlew :org.alloytools.alloy.core:pitest
 ```
 
+## CI/CD Integration
+
+Mutation testing runs automatically in CI/CD via GitHub Actions:
+
+- **Trigger**: On every pull request and push to master
+- **Workflow**: `.github/workflows/mutation-testing.yml`
+- **Artifacts**: Reports are uploaded as GitHub artifacts
+
+### Accessing Reports in CI/CD
+
+1. Go to the GitHub Actions tab
+2. Select the "Mutation Testing" workflow run
+3. Download the artifact `pitest-report-cli` or `pitest-report-core`
+4. Open `index.html` in your browser
+
+### Manual Trigger
+
+You can manually trigger mutation testing from the GitHub Actions tab using the "Run workflow" button.
+
 ## Viewing Reports
 
 After running mutation tests, HTML reports are generated in:
