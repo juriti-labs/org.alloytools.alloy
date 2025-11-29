@@ -62,4 +62,43 @@ public class CLITest {
         assertEquals("dot", CLI.OutputType.dot.name());
         assertEquals("rdf", CLI.OutputType.rdf.name());
     }
+
+    @Test
+    public void testOutputTypeCompareTo() {
+        // Test compareTo for enum ordering
+        assertTrue(CLI.OutputType.none.compareTo(CLI.OutputType.text) < 0);
+        assertTrue(CLI.OutputType.yaml.compareTo(CLI.OutputType.none) > 0);
+        assertEquals(0, CLI.OutputType.json.compareTo(CLI.OutputType.json));
+    }
+
+    @Test
+    public void testOutputTypeEquals() {
+        // Test equals
+        assertEquals(CLI.OutputType.yaml, CLI.OutputType.valueOf("yaml"));
+        assertNotEquals(CLI.OutputType.yaml, CLI.OutputType.json);
+        assertNotEquals(CLI.OutputType.yaml, null);
+        assertNotEquals(CLI.OutputType.yaml, "yaml");
+    }
+
+    @Test
+    public void testCLICreation() {
+        // Test CLI instance creation
+        CLI cli = new CLI();
+        assertNotNull(cli);
+        assertNotNull(cli.toString());
+        assertFalse(cli.toString().isEmpty());
+    }
+
+    @Test
+    public void testOutputTypeHashCode() {
+        // Test hashCode consistency
+        assertEquals(CLI.OutputType.yaml.hashCode(), CLI.OutputType.yaml.hashCode());
+        assertEquals(CLI.OutputType.valueOf("json").hashCode(), CLI.OutputType.json.hashCode());
+    }
+
+    @Test
+    public void testOutputTypeDeclaringClass() {
+        // Test declaring class
+        assertEquals(CLI.OutputType.class, CLI.OutputType.yaml.getDeclaringClass());
+    }
 }

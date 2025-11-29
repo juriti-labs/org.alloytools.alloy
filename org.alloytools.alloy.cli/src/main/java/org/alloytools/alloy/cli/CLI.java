@@ -795,7 +795,7 @@ public class CLI extends Env {
 		pw.println("# Alloy Solution Output - YAML Format");
 		pw.println("# Generated for LLM consumption");
 		pw.println();
-		pw.printf("command: \"%s\"%n", escapeYaml(cname));
+		pw.printf("command: \"%s\"%n", OutputUtils.escapeYaml(cname));
 		pw.printf("solution_index: %d%n", index);
 		pw.printf("duration_ms: %d%n", dto.duration);
 		pw.printf("incremental: %s%n", dto.incremental);
@@ -810,16 +810,16 @@ public class CLI extends Env {
 			pw.printf("  - state: %d%n", instance.state);
 			pw.println("    values:");
 			for (Map.Entry<String, Map<String, String[][]>> sigEntry : instance.values.entrySet()) {
-				pw.printf("      %s:%n", escapeYaml(sigEntry.getKey()));
+				pw.printf("      %s:%n", OutputUtils.escapeYaml(sigEntry.getKey()));
 				for (Map.Entry<String, String[][]> fieldEntry : sigEntry.getValue().entrySet()) {
-					pw.printf("        %s:%n", escapeYaml(fieldEntry.getKey()));
+					pw.printf("        %s:%n", OutputUtils.escapeYaml(fieldEntry.getKey()));
 					String[][] tuples = fieldEntry.getValue();
 					if (tuples != null) {
 						for (String[] tuple : tuples) {
 							pw.print("          - [");
 							for (int i = 0; i < tuple.length; i++) {
 								if (i > 0) pw.print(", ");
-								pw.printf("\"%s\"", escapeYaml(tuple[i]));
+								pw.printf("\"%s\"", OutputUtils.escapeYaml(tuple[i]));
 							}
 							pw.println("]");
 						}
@@ -829,7 +829,7 @@ public class CLI extends Env {
 			if (!instance.skolems.isEmpty()) {
 				pw.println("    skolems:");
 				for (Map.Entry<String, TuplesDTO> skolem : instance.skolems.entrySet()) {
-					pw.printf("      %s:%n", escapeYaml(skolem.getKey()));
+					pw.printf("      %s:%n", OutputUtils.escapeYaml(skolem.getKey()));
 					pw.printf("        arity: %d%n", skolem.getValue().arity);
 					pw.println("        data:");
 					if (skolem.getValue().data != null) {
@@ -837,7 +837,7 @@ public class CLI extends Env {
 							pw.print("          - [");
 							for (int i = 0; i < tuple.length; i++) {
 								if (i > 0) pw.print(", ");
-								pw.printf("\"%s\"", escapeYaml(tuple[i]));
+								pw.printf("\"%s\"", OutputUtils.escapeYaml(tuple[i]));
 							}
 							pw.println("]");
 						}
@@ -851,8 +851,8 @@ public class CLI extends Env {
 			pw.println("signatures:");
 			for (Map.Entry<String, SigDefDTO> sigEntry : dto.sigs.entrySet()) {
 				SigDefDTO sig = sigEntry.getValue();
-				pw.printf("  %s:%n", escapeYaml(sigEntry.getKey()));
-				pw.printf("    name: \"%s\"%n", escapeYaml(sig.name));
+				pw.printf("  %s:%n", OutputUtils.escapeYaml(sigEntry.getKey()));
+				pw.printf("    name: \"%s\"%n", OutputUtils.escapeYaml(sig.name));
 				if (sig.cardinality != null) {
 					pw.printf("    cardinality: %s%n", sig.cardinality);
 				}
@@ -860,32 +860,20 @@ public class CLI extends Env {
 				pw.printf("    meta: %s%n", sig.meta);
 				pw.printf("    builtin: %s%n", sig.builtin);
 				if (sig.type != null) {
-					pw.printf("    type: \"%s\"%n", escapeYaml(sig.type));
+					pw.printf("    type: \"%s\"%n", OutputUtils.escapeYaml(sig.type));
 				}
 				if (!sig.fields.isEmpty()) {
 					pw.println("    fields:");
 					for (Map.Entry<String, FieldDTO> fieldEntry : sig.fields.entrySet()) {
-						pw.printf("      %s:%n", escapeYaml(fieldEntry.getKey()));
+						pw.printf("      %s:%n", OutputUtils.escapeYaml(fieldEntry.getKey()));
 						FieldDTO field = fieldEntry.getValue();
 						if (field.name != null) {
-							pw.printf("        name: \"%s\"%n", escapeYaml(field.name));
+							pw.printf("        name: \"%s\"%n", OutputUtils.escapeYaml(field.name));
 						}
 					}
 				}
 			}
 		}
-	}
-
-	/**
-	 * Escape special characters for YAML output
-	 */
-	private String escapeYaml(String s) {
-		if (s == null) return "";
-		return s.replace("\\", "\\\\")
-				.replace("\"", "\\\"")
-				.replace("\n", "\\n")
-				.replace("\r", "\\r")
-				.replace("\t", "\\t");
 	}
 
 	/**
@@ -895,9 +883,9 @@ public class CLI extends Env {
 		pw.println("// Alloy Solution Output - DOT/GraphViz Format");
 		pw.printf("// Command: %s, Solution: %d%n", cname, index);
 		pw.println();
-		pw.printf("digraph \"%s_solution_%d\" {%n", sanitizeId(cname), index);
+		pw.printf("digraph \"%s_solution_%d\" {%n", OutputUtils.sanitizeId(cname), index);
 		pw.println("    rankdir=LR;");
-		pw.println("    node [shape=box, style=filled, fillcolor=lightblue];");
+		pw.println("    node [shape=box, style=filled, fillcolor=lightblue]");
 		pw.println("    edge [fontsize=10];");
 		pw.println();
 
@@ -930,7 +918,7 @@ public class CLI extends Env {
 		// Write nodes
 		pw.println("    // Atoms");
 		for (String atom : allAtoms) {
-			pw.printf("    \"%s\" [label=\"%s\"];%n", sanitizeId(atom), atom);
+			pw.printf("    \"%s\" [label=\"%s\"];%n", OutputUtils.sanitizeId(atom), atom);
 		}
 		pw.println();
 
@@ -938,20 +926,10 @@ public class CLI extends Env {
 		pw.println("    // Relations");
 		for (String[] edge : allEdges) {
 			pw.printf("    \"%s\" -> \"%s\" [label=\"%s\"];%n", 
-					sanitizeId(edge[0]), sanitizeId(edge[1]), edge[2]);
+					OutputUtils.sanitizeId(edge[0]), OutputUtils.sanitizeId(edge[1]), edge[2]);
 		}
 
 		pw.println("}");
-	}
-
-	/**
-	 * Sanitize identifier for DOT format
-	 */
-	private String sanitizeId(String s) {
-		if (s == null || s.isEmpty()) return "unknown";
-		String result = s.replace("$", "_").replace("/", "_").replace("\"", "\\\"").trim();
-		if (result.isEmpty()) return "unknown";
-		return result;
 	}
 
 	/**
@@ -966,12 +944,12 @@ public class CLI extends Env {
 		pw.println("@prefix sol: <http://alloytools.org/solution/> .");
 		pw.println();
 
-		String solutionUri = String.format("sol:%s_solution_%d", sanitizeRdfId(cname), index);
+		String solutionUri = String.format("sol:%s_solution_%d", OutputUtils.sanitizeRdfId(cname), index);
 
 		// Solution metadata
 		pw.printf("# Alloy Solution: %s, index %d%n", cname, index);
 		pw.printf("%s a alloy:Solution ;%n", solutionUri);
-		pw.printf("    alloy:command \"%s\" ;%n", escapeRdf(cname));
+		pw.printf("    alloy:command \"%s\" ;%n", OutputUtils.escapeRdf(cname));
 		pw.printf("    alloy:solutionIndex %d ;%n", index);
 		pw.printf("    alloy:durationMs %d ;%n", dto.duration);
 		pw.printf("    alloy:incremental %s ;%n", dto.incremental);
@@ -999,11 +977,11 @@ public class CLI extends Env {
 			// Write atoms and relations
 			for (Map.Entry<String, Map<String, String[][]>> sigEntry : instance.values.entrySet()) {
 				String sigName = sigEntry.getKey();
-				String sigUri = "sol:" + sanitizeRdfId(sigName);
+				String sigUri = "sol:" + OutputUtils.sanitizeRdfId(sigName);
 				
 				pw.printf("# Signature: %s%n", sigName);
 				pw.printf("%s a alloy:Signature ;%n", sigUri);
-				pw.printf("    rdfs:label \"%s\" ;%n", escapeRdf(sigName));
+				pw.printf("    rdfs:label \"%s\" ;%n", OutputUtils.escapeRdf(sigName));
 				pw.println("    .");
 				pw.println();
 
@@ -1012,10 +990,10 @@ public class CLI extends Env {
 					String[][] tuples = fieldEntry.getValue();
 					
 					if (tuples != null && tuples.length > 0) {
-						String fieldUri = sigUri + "_" + sanitizeRdfId(fieldName);
+						String fieldUri = sigUri + "_" + OutputUtils.sanitizeRdfId(fieldName);
 						pw.printf("# Field: %s.%s%n", sigName, fieldName);
 						pw.printf("%s a alloy:Field ;%n", fieldUri);
-						pw.printf("    rdfs:label \"%s\" ;%n", escapeRdf(fieldName));
+						pw.printf("    rdfs:label \"%s\" ;%n", OutputUtils.escapeRdf(fieldName));
 						pw.printf("    alloy:belongsTo %s ;%n", sigUri);
 						pw.println("    .");
 						
@@ -1025,10 +1003,10 @@ public class CLI extends Env {
 							pw.printf("%s a alloy:Tuple ;%n", tupleUri);
 							pw.printf("    alloy:inField %s ;%n", fieldUri);
 							for (int i = 0; i < tuple.length; i++) {
-								String atomUri = "sol:" + sanitizeRdfId(tuple[i]);
+								String atomUri = "sol:" + OutputUtils.sanitizeRdfId(tuple[i]);
 								pw.printf("    alloy:element%d %s ;%n", i, atomUri);
 								// Also declare the atom
-								pw.printf("%s a alloy:Atom ; rdfs:label \"%s\" .%n", atomUri, escapeRdf(tuple[i]));
+								pw.printf("%s a alloy:Atom ; rdfs:label \"%s\" .%n", atomUri, OutputUtils.escapeRdf(tuple[i]));
 							}
 							pw.println("    .");
 						}
@@ -1040,12 +1018,12 @@ public class CLI extends Env {
 			// Write skolems
 			for (Map.Entry<String, TuplesDTO> skolem : instance.skolems.entrySet()) {
 				String skolemName = skolem.getKey();
-				String skolemUri = "sol:" + sanitizeRdfId(skolemName);
+				String skolemUri = "sol:" + OutputUtils.sanitizeRdfId(skolemName);
 				TuplesDTO tuplesDto = skolem.getValue();
 				
 				pw.printf("# Skolem: %s%n", skolemName);
 				pw.printf("%s a alloy:Skolem ;%n", skolemUri);
-				pw.printf("    rdfs:label \"%s\" ;%n", escapeRdf(skolemName));
+				pw.printf("    rdfs:label \"%s\" ;%n", OutputUtils.escapeRdf(skolemName));
 				pw.printf("    alloy:arity %d ;%n", tuplesDto.arity);
 				pw.println("    .");
 				
@@ -1056,7 +1034,7 @@ public class CLI extends Env {
 						pw.printf("%s a alloy:SkolemTuple ;%n", tupleUri);
 						pw.printf("    alloy:inSkolem %s ;%n", skolemUri);
 						for (int i = 0; i < tuple.length; i++) {
-							String atomUri = "sol:" + sanitizeRdfId(tuple[i]);
+							String atomUri = "sol:" + OutputUtils.sanitizeRdfId(tuple[i]);
 							pw.printf("    alloy:element%d %s ;%n", i, atomUri);
 						}
 						pw.println("    .");
@@ -1071,12 +1049,12 @@ public class CLI extends Env {
 		// Write signature definitions
 		for (Map.Entry<String, SigDefDTO> sigEntry : dto.sigs.entrySet()) {
 			SigDefDTO sig = sigEntry.getValue();
-			String sigDefUri = "sol:SigDef_" + sanitizeRdfId(sigEntry.getKey());
+			String sigDefUri = "sol:SigDef_" + OutputUtils.sanitizeRdfId(sigEntry.getKey());
 			
 			pw.printf("# Signature Definition: %s%n", sigEntry.getKey());
 			pw.printf("%s a alloy:SignatureDefinition ;%n", sigDefUri);
 			if (sig.name != null) {
-				pw.printf("    alloy:name \"%s\" ;%n", escapeRdf(sig.name));
+				pw.printf("    alloy:name \"%s\" ;%n", OutputUtils.escapeRdf(sig.name));
 			}
 			if (sig.cardinality != null) {
 				pw.printf("    alloy:cardinality \"%s\" ;%n", sig.cardinality);
@@ -1085,40 +1063,11 @@ public class CLI extends Env {
 			pw.printf("    alloy:isMeta %s ;%n", sig.meta);
 			pw.printf("    alloy:isBuiltin %s ;%n", sig.builtin);
 			if (sig.type != null) {
-				pw.printf("    alloy:type \"%s\" ;%n", escapeRdf(sig.type));
+				pw.printf("    alloy:type \"%s\" ;%n", OutputUtils.escapeRdf(sig.type));
 			}
 			pw.println("    .");
 			pw.println();
 		}
-	}
-
-	/**
-	 * Sanitize identifier for RDF URI
-	 */
-	private String sanitizeRdfId(String s) {
-		if (s == null || s.isEmpty()) return "unknown";
-		String result = s.replace("$", "_")
-				.replace("/", "_")
-				.replace(" ", "_")
-				.replace("\"", "")
-				.replace("'", "")
-				.replace("<", "")
-				.replace(">", "")
-				.replace(":", "_")
-				.trim();
-		if (result.isEmpty()) return "unknown";
-		return result;
-	}
-
-	/**
-	 * Escape special characters for RDF literal
-	 */
-	private String escapeRdf(String s) {
-		if (s == null) return "";
-		return s.replace("\\", "\\\\")
-				.replace("\"", "\\\"")
-				.replace("\n", "\\n")
-				.replace("\r", "\\r");
 	}
 
 	private File getPath(File outdir, String cname, String extension, int index) {
