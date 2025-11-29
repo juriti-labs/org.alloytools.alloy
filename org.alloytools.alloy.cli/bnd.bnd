@@ -10,6 +10,11 @@
 	jline,\
 	org.alloytools.api,\
 	org.alloytools.pardinus.core
+
+-testpath: \
+	biz.aQute.wrapper.junit,\
+	biz.aQute.wrapper.hamcrest,\
+	assertj-core
 	
 -includepackage org.alloytools.alloy.cli
 
