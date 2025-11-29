@@ -1,0 +1,104 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+  push:
+    branches: ["master"]
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  LC_ALL: en_US.UTF-8
+
+jobs:
+  mutation-test:
+    name: PITest Mutation Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 17 
+          distribution: temurin
+          
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Build project
+        run: ./gradlew --parallel build -x test
+        
+      - name: Run mutation tests on CLI module
+        run: ./gradlew :org.alloytools.alloy.cli:pitest
+        continue-on-error: true  # Don't fail the workflow if mutations survive
+        
+      - name: Run mutation tests on core module
+        run: ./gradlew :org.alloytools.alloy.core:pitest
+        continue-on-error: true  # Don't fail the workflow if mutations survive
+        
+      - name: Upload CLI mutation test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-report-cli
+          path: org.alloytools.alloy.cli/build/reports/pitest/
+          retention-days: 30
+          
+      - name: Upload Core mutation test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-report-core
+          path: org.alloytools.alloy.core/build/reports/pitest/
+          retention-days: 30
+          
+      - name: Generate mutation testing summary
+        if: always()
+        run: |
+          echo "## Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CLI Module" >> $GITHUB_STEP_SUMMARY
+          if [ -f org.alloytools.alloy.cli/build/reports/pitest/mutations.xml ]; then
+            KILLED=$(grep -c 'status="KILLED"' org.alloytools.alloy.cli/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            SURVIVED=$(grep -c 'status="SURVIVED"' org.alloytools.alloy.cli/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            NO_COVERAGE=$(grep -c 'status="NO_COVERAGE"' org.alloytools.alloy.cli/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            TOTAL=$((KILLED + SURVIVED + NO_COVERAGE))
+            if [ $TOTAL -gt 0 ]; then
+              SCORE=$((KILLED * 100 / TOTAL))
+              echo "- **Mutations Killed**: $KILLED" >> $GITHUB_STEP_SUMMARY
+              echo "- **Mutations Survived**: $SURVIVED" >> $GITHUB_STEP_SUMMARY
+              echo "- **No Coverage**: $NO_COVERAGE" >> $GITHUB_STEP_SUMMARY
+              echo "- **Mutation Score**: $SCORE%" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No mutations found." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No mutation report generated." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Core Module" >> $GITHUB_STEP_SUMMARY
+          if [ -f org.alloytools.alloy.core/build/reports/pitest/mutations.xml ]; then
+            KILLED=$(grep -c 'status="KILLED"' org.alloytools.alloy.core/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            SURVIVED=$(grep -c 'status="SURVIVED"' org.alloytools.alloy.core/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            NO_COVERAGE=$(grep -c 'status="NO_COVERAGE"' org.alloytools.alloy.core/build/reports/pitest/mutations.xml 2>/dev/null || echo "0")
+            TOTAL=$((KILLED + SURVIVED + NO_COVERAGE))
+            if [ $TOTAL -gt 0 ]; then
+              SCORE=$((KILLED * 100 / TOTAL))
+              echo "- **Mutations Killed**: $KILLED" >> $GITHUB_STEP_SUMMARY
+              echo "- **Mutations Survived**: $SURVIVED" >> $GITHUB_STEP_SUMMARY
+              echo "- **No Coverage**: $NO_COVERAGE" >> $GITHUB_STEP_SUMMARY
+              echo "- **Mutation Score**: $SCORE%" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No mutations found." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No mutation report generated." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Full HTML reports are available in the artifacts above." >> $GITHUB_STEP_SUMMARY

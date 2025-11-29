@@ -1,0 +1,54 @@
+{
+  "name": "Alloy CLI",
+  "version": "6.x",
+  "description": "Alloy formal specification language command line interface with LLM-friendly extensions",
+  "llm_optimizations": {
+    "self_discovery": "Use 'alloy describe' to get machine-readable CLI documentation",
+    "structured_output": "Prefer JSON or YAML output for parsing",
+    "knowledge_graph": "Use RDF output for semantic integration"
+  },
+  "quick_start": {
+    "execute_model": "alloy exec -t json -o - model.als",
+    "list_commands": "alloy commands model.als",
+    "list_solvers": "alloy solvers --list",
+    "get_help": "alloy describe"
+  },
+  "output_formats": ["json", "yaml", "xml", "dot", "rdf", "table", "text"],
+  "language": {
+    "type": "formal specification",
+    "paradigm": "declarative relational logic",
+    "features": [
+      "first-order logic",
+      "transitive closure",
+      "SAT-based analysis",
+      "temporal operators (Alloy 6+)"
+    ]
+  },
+  "syntax_summary": {
+    "signature": "sig Name { field: Type }",
+    "subset_sig": "sig Sub in Parent {}",
+    "extends_sig": "sig Child extends Parent {}",
+    "fact": "fact Name { constraint }",
+    "predicate": "pred Name[args] { body }",
+    "function": "fun Name[args]: ReturnType { body }",
+    "assertion": "assert Name { property }",
+    "run": "run pred for scope",
+    "check": "check assert for scope"
+  },
+  "common_patterns": {
+    "universal": "all x: Type | constraint",
+    "existential": "some x: Type | constraint",
+    "cardinality_one": "one x",
+    "cardinality_some": "some x",
+    "cardinality_lone": "lone x",
+    "cardinality_no": "no x",
+    "transitive_closure": "^relation",
+    "reflexive_transitive_closure": "*relation",
+    "join": "a.b",
+    "union": "a + b",
+    "intersection": "a & b",
+    "difference": "a - b",
+    "subset": "a in b",
+    "equality": "a = b"
+  }
+}

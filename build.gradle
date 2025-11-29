@@ -1,0 +1,83 @@
+// Root build.gradle for mutation testing configuration
+// This file adds PITest mutation testing support to the project
+// Compatible with bnd workspace structure
+
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0'
+    }
+}
+
+// Add repositories to all projects for PITest dependencies
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+// Configure subprojects after they are evaluated
+allprojects {
+    afterEvaluate { project ->
+        // Only apply to projects that have the java plugin applied
+        if (project.plugins.hasPlugin('java')) {
+            project.apply plugin: 'info.solidsoft.pitest'
+            
+            project.pitest {
+                // PITest configuration
+                targetClasses = ['org.alloytools.**', 'edu.mit.csail.sdg.**']
+                targetTests = ['org.alloytools.**', 'edu.mit.csail.sdg.**']
+                
+                // Mutation operators to use
+                mutators = ['DEFAULTS']
+                
+                // Output formats
+                outputFormats = ['HTML', 'XML']
+                
+                // Threads for parallel execution
+                threads = Runtime.runtime.availableProcessors()
+                
+                // Timeout settings
+                timeoutConstInMillis = 10000
+                
+                // JVM arguments
+                jvmArgs = ['-Xmx1024m']
+                
+                // Report directory
+                reportDir = file("${project.buildDir}/reports/pitest")
+                
+                // Avoid failure on initial run without tests
+                failWhenNoMutations = false
+                
+                // Timestamped reports
+                timestampedReports = false
+                
+                // Verbose output
+                verbose = true
+            }
+        }
+    }
+}
+
+// Add a custom task to run mutation testing on all subprojects
+tasks.register('mutationTest') {
+    description = 'Run mutation testing on all subprojects'
+    group = 'verification'
+    
+    doLast {
+        println "Run mutation testing with: ./gradlew :org.alloytools.alloy.cli:pitest"
+    }
+}
+
+// Add aggregate mutation report task
+tasks.register('mutationTestReport') {
+    description = 'Generate aggregate mutation test report'
+    group = 'verification'
+    
+    doLast {
+        println "Mutation testing reports are in each module's build/reports/pitest directory"
+    }
+}
