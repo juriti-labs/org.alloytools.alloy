@@ -1,0 +1,35 @@
+# Build output
+target/
+build/
+*.jar
+*.class
+
+# NPM
+node_modules/
+npm/dist/*.wasm
+npm/dist/*.js
+npm/dist/*.map
+npm/dist/*.wasm.map
+npm-debug.log*
+package-lock.json
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
