@@ -53,6 +53,7 @@ The workspace is divided into a number of projects:
 * [org.alloytools.alloy.application](org.alloytools.alloy.application) – Main application code includes the parser, ast, visualiser, and application code
 * [org.alloytools.alloy.dist](org.alloytools.alloy.dist) – Project to create the distribution executable JAR
 * [org.alloytools.alloy.extra](org.alloytools.alloy.extra) – Models and examples
+* [org.alloytools.alloy.wasm](org.alloytools.alloy.wasm) – WebAssembly build with JSON interface for browser usage
 * [org.alloytools.pardinus](org.alloytools.pardinus) – A Kodkod extension without native code
 * [org.alloytools.kodkod.nativesat](org.alloytools.kodkod.nativesat) – The native code libraries for Kodkod
 
@@ -100,6 +101,23 @@ In the root of this workspace type `./gradlew`. This is a script that will downl
 The workspace is setup to build after every commit using Github Actions, see [workflows](.github/workflows). 
 
 It releases snapshots to `https://oss.sonatype.org/content/repositories/snapshots/org/alloytools/` for every CI build.
+
+### Building the WebAssembly Module
+
+Alloy can be compiled to WebAssembly for use in web browsers and Node.js. The WASM module provides a JSON-based interface for parsing and executing Alloy models.
+
+```bash
+./gradlew :org.alloytools.alloy.wasm:build
+```
+
+For detailed instructions on WASM compilation and usage, see the [WASM Module README](org.alloytools.alloy.wasm/README.md).
+
+The WASM build creates an NPM package that can be published:
+
+```bash
+cd org.alloytools.alloy.wasm/npm
+npm pack
+```
 
 ### Building the DMG file for OSX systems
 
