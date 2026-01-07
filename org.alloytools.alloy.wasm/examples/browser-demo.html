@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alloy WASM Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .panel {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 3px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            display: none;
+        }
+        .status.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            display: block;
+        }
+        .status.error {
+            background-color: #f2dede;
+            color: #a94442;
+            display: block;
+        }
+        .examples {
+            margin-top: 10px;
+        }
+        .examples select {
+            padding: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alloy WebAssembly Demo</h1>
+    <p>This page demonstrates the Alloy Analyzer running in the browser via WebAssembly.</p>
+    
+    <div class="examples">
+        <label for="exampleSelect">Load example: </label>
+        <select id="exampleSelect" onchange="loadExample()">
+            <option value="">-- Select an example --</option>
+            <option value="graph">Graph Acyclicity</option>
+            <option value="friends">Symmetric Friendship</option>
+            <option value="tree">Binary Tree</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Alloy Model</h2>
+            <textarea id="modelInput">sig Node {
+    edges: set Node
+}
+
+pred acyclic {
+    no n: Node | n in n.^edges
+}
+
+run acyclic for 5</textarea>
+            <button onclick="parseModel()">Parse Model</button>
+            <button onclick="executeModel()">Execute Command</button>
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="panel">
+            <h2>Output</h2>
+            <pre id="output">Click "Parse Model" or "Execute Command" to see results...</pre>
+        </div>
+    </div>
+
+    <script src="../npm/dist/alloy.js"></script>
+    <script>
+        // Example models
+        const examples = {
+            graph: `sig Node {
+    edges: set Node
+}
+
+pred acyclic {
+    no n: Node | n in n.^edges
+}
+
+run acyclic for 5`,
+            
+            friends: `sig Person {
+    friends: set Person
+}
+
+pred symmetricFriendship {
+    all p1, p2: Person | p1 in p2.friends implies p2 in p1.friends
+}
+
+run symmetricFriendship for 4`,
+            
+            tree: `abstract sig Node {
+    left: lone Node,
+    right: lone Node
+}
+
+sig Leaf extends Node {}
+sig Internal extends Node {}
+
+fact {
+    no Leaf.left
+    no Leaf.right
+    some Internal.left or some Internal.right
+}
+
+pred validTree {
+    no n: Node | n in n.^(left + right)
+}
+
+run validTree for 5`
+        };
+
+        function loadExample() {
+            const select = document.getElementById('exampleSelect');
+            const example = select.value;
+            if (example && examples[example]) {
+                document.getElementById('modelInput').value = examples[example];
+                clearStatus();
+            }
+        }
+
+        function showStatus(message, isError) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + (isError ? 'error' : 'success');
+        }
+
+        function clearStatus() {
+            const status = document.getElementById('status');
+            status.className = 'status';
+            status.textContent = '';
+        }
+
+        function parseModel() {
+            clearStatus();
+            try {
+                const modelText = document.getElementById('modelInput').value;
+                
+                // Check if AlloyWasm is loaded
+                if (typeof AlloyWasm === 'undefined') {
+                    showStatus('Error: AlloyWasm module not loaded. Make sure alloy.js is in the correct path.', true);
+                    document.getElementById('output').textContent = 'AlloyWasm module not found.\nExpected path: ../npm/dist/alloy.js';
+                    return;
+                }
+                
+                const resultJson = AlloyWasm.parseModel(modelText);
+                const result = JSON.parse(resultJson);
+                
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    showStatus(`✓ Parsed successfully: ${result.commandCount} command(s) found`, false);
+                } else {
+                    showStatus('✗ Parse error: ' + result.error, true);
+                }
+            } catch (e) {
+                showStatus('✗ Error: ' + e.message, true);
+                document.getElementById('output').textContent = 'Exception:\n' + e.toString();
+            }
+        }
+
+        function executeModel() {
+            clearStatus();
+            try {
+                const modelText = document.getElementById('modelInput').value;
+                
+                // Check if AlloyWasm is loaded
+                if (typeof AlloyWasm === 'undefined') {
+                    showStatus('Error: AlloyWasm module not loaded. Make sure alloy.js is in the correct path.', true);
+                    document.getElementById('output').textContent = 'AlloyWasm module not found.\nExpected path: ../npm/dist/alloy.js';
+                    return;
+                }
+                
+                const resultJson = AlloyWasm.executeCommand(modelText, '');
+                const result = JSON.parse(resultJson);
+                
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+                
+                if (result.success) {
+                    if (result.satisfiable) {
+                        showStatus('✓ Solution found (SAT)', false);
+                    } else {
+                        showStatus('✓ No solution found (UNSAT)', false);
+                    }
+                } else {
+                    showStatus('✗ Execution error: ' + result.error, true);
+                }
+            } catch (e) {
+                showStatus('✗ Error: ' + e.message, true);
+                document.getElementById('output').textContent = 'Exception:\n' + e.toString();
+            }
+        }
+        
+        // Check version on load
+        window.addEventListener('load', function() {
+            try {
+                if (typeof AlloyWasm !== 'undefined') {
+                    const versionJson = AlloyWasm.getVersion();
+                    const version = JSON.parse(versionJson);
+                    console.log('Alloy WASM loaded:', version);
+                } else {
+                    console.warn('AlloyWasm module not found. Make sure the build has been completed and alloy.js is in the correct location.');
+                }
+            } catch (e) {
+                console.error('Error checking version:', e);
+            }
+        });
+    </script>
+</body>
+</html>

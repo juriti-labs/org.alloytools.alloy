@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':org.alloytools.alloy.core')
+    implementation project(':org.alloytools.api')
+    implementation project(':org.alloytools.pardinus.core')
+}
+
+// Note: WASM compilation will be configured separately
+// This module provides the Java interface for WASM compilation

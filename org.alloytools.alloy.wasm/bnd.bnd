@@ -1,0 +1,11 @@
+-buildpath: \
+	org.alloytools.alloy.core,\
+	org.alloytools.alloy.cli,\
+	org.alloytools.api,\
+	org.alloytools.pardinus.core,\
+	slf4j.api,\
+	aQute.libg
+
+-includepackage: org.alloytools.alloy.wasm
+
+Export-Package: org.alloytools.alloy.wasm

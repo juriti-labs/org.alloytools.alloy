@@ -1,0 +1,36 @@
+{
+  "name": "@alloytools/alloy-wasm",
+  "version": "6.0.0",
+  "description": "Alloy Analyzer compiled to WebAssembly for use in browsers and Node.js",
+  "main": "dist/alloy.js",
+  "types": "dist/alloy.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlloyTools/org.alloytools.alloy.git"
+  },
+  "keywords": [
+    "alloy",
+    "formal-methods",
+    "model-checking",
+    "webassembly",
+    "wasm",
+    "sat-solver"
+  ],
+  "author": "Alloy Tools",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/AlloyTools/org.alloytools.alloy/issues"
+  },
+  "homepage": "https://alloytools.org",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
