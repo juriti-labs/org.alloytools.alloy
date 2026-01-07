@@ -29,7 +29,6 @@ public class AlloyWasm {
      */
     public static String parseModel(String modelText) {
         try {
-            Map<String, String> cache = new HashMap<>();
             CompModule module = CompUtil.parseOneModule(modelText);
             
             Map<String, Object> result = new HashMap<>();
@@ -62,7 +61,6 @@ public class AlloyWasm {
     public static String executeCommand(String modelText, String commandName) {
         try {
             // Parse the model
-            Map<String, String> cache = new HashMap<>();
             CompModule module = CompUtil.parseOneModule(modelText);
             
             // Find the command
@@ -104,6 +102,8 @@ public class AlloyWasm {
             result.put("command", cmd.label);
             
             if (solution.satisfiable()) {
+                // Set module before converting to DTO
+                solution.setModule(module);
                 // Convert solution to DTO for JSON serialization
                 org.alloytools.alloy.dto.SolutionDTO solutionDTO = solution.toDTO();
                 result.put("solution", solutionDTO);
